@@ -5,40 +5,28 @@
 #include <string>
 #include <list>
 #include <limits.h>
-
-using namespace std;
-//NY
-#define length  264346
-#define arcL  733846
-
-//FL
-//#define length 1070376
-
-//class Graph
-//{
-//    int numVertices;
-//    list<float> *adjLists;
-//
-//public:
-//    Graph(int V);
-//    void addEdge(int src, int dest);
-//};
-//Graph::Graph(int vertices)
-//{
-//    numVertices = vertices;
-//    adjLists = new list<float>[vertices];
-//}
-//
-//void Graph::addEdge(int src, int dest)
-//{
-//    adjLists[src].push_front(dest);
-//}
-// C / C++ program for Dijkstra's shortest path algorithm for adjacency
-// list representation of graph
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+
+
+//this is the data for NY
+#define length  264346
+#define arcL  733846
+#define sourceNode 1
+#define targetNode 12760
+
+using namespace std;
+
+
+int pathWeight;
+ofPolyline line;
+ofPoint pt;
+int ex, ey;
+string my_nodes [264346][4]{};
+string my_arcs [733846][4]{};
+int my_paths[264346];
+
 
 // A structure to represent a node in adjacency list
 struct AdjListNode
@@ -257,19 +245,75 @@ void printArr(int dist[], int n)
         printf("%d \t\t %d\n", i, dist[i]);
 }
 
+void createArray(int j, int idx, int src){
+//    if(idx == 0){
+//        my_paths[0] = j;
+//    }
+//    else{
+
+        if (my_paths[idx] == 0){
+            my_paths[idx] = j;
+        }
+        else{
+            createArray(j,idx+1,src);
+        }
+ 
+//    }
+   
+    
+    
+    
+}
+void printPath(int parent[], int j, int src)
+{
+    
+    // Base Case : If j is source
+    if (parent[j] == - 1)
+        return;
+    
+    printPath(parent, parent[j], src);
+    
+//    printf("%d", j);
+//    cout << j << "\n";
+    createArray(j,0,src);
+
+//    my_paths[i][0]=arr[i];
+//    my_paths[i][1]=i;
+}
+
+// A utility function to print
+// the constructed distance
+// array
+int printSolution(int src, int target, int dist[],  int parent[])
+{
+    int n = target;
+  
+//    printf("Vertex\t Distance\tPath");
+    pathWeight = dist[n];
+    
+//    cout << dist[n] << "\n";
+
+    printPath(parent, n, src);
+    
+//    for (int i=0; i < length; i++){
+//        cout<<my_paths[i]<<"\n";
+//    }
+    
+}
 // The main function that calulates distances of shortest paths from src to all
 // vertices. It is a O(ELogV) function
-void dijkstra(struct Graph* graph, int src)
+void dijkstra(struct Graph* graph, int src, int target)
 {
     int V = graph->V;// Get the number of vertices in graph
     int dist[V];      // dist values used to pick minimum weight edge in cut
-    
+    int parent[V];
     // minHeap represents set E
     struct MinHeap* minHeap = createMinHeap(V);
     
     // Initialize min heap with all vertices. dist value of all vertices
     for (int v = 0; v < V; ++v)
     {
+        parent[v] = -1;
         dist[v] = INT_MAX;
         minHeap->array[v] = newMinHeapNode(v, dist[v]);
         minHeap->pos[v] = v;
@@ -301,10 +345,10 @@ void dijkstra(struct Graph* graph, int src)
             
             // If shortest distance to v is not finalized yet, and distance to v
             // through u is less than its previously calculated distance
-            if (isInMinHeap(minHeap, v) && dist[u] != INT_MAX &&
-                pCrawl->weight + dist[u] < dist[v])
+            if (isInMinHeap(minHeap, v) && dist[u] != INT_MAX && pCrawl->weight + dist[u] < dist[v])
             {
                 dist[v] = dist[u] + pCrawl->weight;
+                parent[v] = u;
                 
                 // update distance value in min heap also
                 decreaseKey(minHeap, v, dist[v]);
@@ -314,12 +358,14 @@ void dijkstra(struct Graph* graph, int src)
     }
     
     // print the calculated shortest distances
-    printArr(dist, V);
+//    printArr(dist, V);
+    printSolution(sourceNode, target, dist, parent);
+
+
 }
 
-string my_nodes [264346][4]{};
-string my_arcs [733846][4]{};
-string my_list[7]{};
+
+
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -343,38 +389,34 @@ void ofApp::setup(){
         }
     }
     
-    for (int i{}; i != 7; ++i) {
-        path >> my_list[i];
-    }
+
 
     float x,y,weight;
-    
-//    for (int i = 1; i < 7; ++i){
-//        int e = stoi(my_list[i]);
-//        x = ofMap(stof(my_nodes[e][2]),-7.4500000 * 1e7, -7.3500000 * 1e7,0., ofGetWidth());
-//        y = ofMap(stof(my_nodes[e][3]),4.0300000 * 1e7, 4.1300000 * 1e7,0., ofGetHeight());
-//        pt.set(x,y);
-//        line.addVertex(pt);
-//    }
-    
-//    Graph g(arcL);
+
     struct Graph* graph = createGraph(length);
     for (int i = 0; i < arcL; ++i){
         weight=stoi(my_arcs[i][3]);
         x = stoi(my_arcs[i][2]);
         y = stoi(my_arcs[i][1]);
-        pt.set(y,x);
-        line.addVertex(pt);
         addEdge(graph, x,y,weight);
-//        g.addEdge(x, y);
-
+    
     }
 
-    // create the graph given in above fugure
-   
-   
-    dijkstra(graph, 1);
+    dijkstra(graph, sourceNode, targetNode);
 
+    for (int i = 0; i < length; ++i){
+
+        ex = (my_paths[i]);
+
+        if (ex!=0){
+
+        x = ofMap(stof(my_nodes[ex-1][2]),-7.4500000 * 1e7, -7.3500000 * 1e7,0., ofGetWidth());
+        y = ofMap(stof(my_nodes[ex-1][3]),4.0300000 * 1e7, 4.1300000 * 1e7,0., ofGetHeight());
+            
+        pt.set(x,y);
+        line.addVertex(pt);
+        }
+    }
   
 }
 
@@ -385,11 +427,14 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+        float x,y;
+      ofEnableAlphaBlending();
+    //draw source node
 
+
+  
     
-    float x;
-    float y;
-
+    //draw the nodes
     for (int i=0; i<length; i++){
         ofSetColor(30,30,30,30);
         x = ofMap(stof(my_nodes[i][2]),-7.4500000 * 1e7, -7.3500000 * 1e7,0., ofGetWidth());
@@ -400,8 +445,21 @@ void ofApp::draw(){
         ofSphere(x,y,0.,1);
         
     }
-    ofSetColor(255,0,0,25);
+    
+
+    
+    //draw paths
+    ofSetColor(255,0,0,250);
     line.draw();
+    ofSetColor(0,255,0,255);
+    x = ofMap(stof(my_nodes[sourceNode][2]),-7.4500000 * 1e7, -7.3500000 * 1e7,0., ofGetWidth());
+    y = ofMap(stof(my_nodes[sourceNode][3]),4.0300000 * 1e7, 4.1300000 * 1e7,0., ofGetHeight());
+    ofSphere(x,y,0.,5);
+    
+    
+
+    ofSetColor(ofColor::white);
+    ofDrawBitmapString("path weight: " + ofToString(pathWeight), 10, 10);
 
 }
 

@@ -5,12 +5,11 @@
 using namespace std;
 class ofApp : public ofBaseApp{
 	public:
+
 		void setup();
 		void update();
 		void draw();
-		ofPolyline line;
     
-    ofPoint pt;
 		void keyPressed(int key);
 		void keyReleased(int key);
 		void mouseMoved(int x, int y);
@@ -23,7 +22,7 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-    
+ 
 };
 
 
