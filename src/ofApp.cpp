@@ -8,13 +8,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <roads.cpp>
 
+#define sourceNode 300
+#define targetNode 9000
 
-//this is the data for NY
+//NY
 #define length  264346
 #define arcL  733846
-#define sourceNode 1
-#define targetNode 12760
+#define latMin -7.45
+#define latMax -7.35
+#define longMin 4.03
+#define longMax 4.13
+string my_nodes [264346][4]{};
+string my_arcs [733846][4]{};
+int my_paths[264346];
+
+//FL
+//#define length  1070376
+//#define arcL 2712798
+//#define latMin -8.75
+//#define latMax -7.90
+//#define longMin 2.40
+//#define longMax 3.10
+//string my_nodes [1070376][4]{};
+//string my_arcs [2712798][4]{};
+//int my_paths[1070376];
+
+
+
+//[24.0; 31.0]     [79; 87.5]
+
 
 using namespace std;
 
@@ -23,10 +47,8 @@ int pathWeight;
 ofPolyline line;
 ofPoint pt;
 int ex, ey;
-string my_nodes [264346][4]{};
-string my_arcs [733846][4]{};
-int my_paths[264346];
 
+//start graph
 
 // A structure to represent a node in adjacency list
 struct AdjListNode
@@ -246,59 +268,29 @@ void printArr(int dist[], int n)
 }
 
 void createArray(int j, int idx, int src){
-//    if(idx == 0){
-//        my_paths[0] = j;
-//    }
-//    else{
-
-        if (my_paths[idx] == 0){
-            my_paths[idx] = j;
-        }
-        else{
-            createArray(j,idx+1,src);
-        }
- 
-//    }
-   
-    
-    
-    
+    if (my_paths[idx] == 0){
+        my_paths[idx] = j;
+    }
+    else{
+        createArray(j,idx+1,src);
+    }
 }
+
 void printPath(int parent[], int j, int src)
 {
     
-    // Base Case : If j is source
     if (parent[j] == - 1)
         return;
     
     printPath(parent, parent[j], src);
-    
-//    printf("%d", j);
-//    cout << j << "\n";
     createArray(j,0,src);
-
-//    my_paths[i][0]=arr[i];
-//    my_paths[i][1]=i;
 }
 
-// A utility function to print
-// the constructed distance
-// array
 int printSolution(int src, int target, int dist[],  int parent[])
 {
     int n = target;
-  
-//    printf("Vertex\t Distance\tPath");
     pathWeight = dist[n];
-    
-//    cout << dist[n] << "\n";
-
     printPath(parent, n, src);
-    
-//    for (int i=0; i < length; i++){
-//        cout<<my_paths[i]<<"\n";
-//    }
-    
 }
 // The main function that calulates distances of shortest paths from src to all
 // vertices. It is a O(ELogV) function
@@ -358,21 +350,25 @@ void dijkstra(struct Graph* graph, int src, int target)
     }
     
     // print the calculated shortest distances
-//    printArr(dist, V);
+    //    printArr(dist, V);
     printSolution(sourceNode, target, dist, parent);
-
-
+    
+    
 }
 
+//end graph
 
 
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    //    ifstream file { "/Users/sambeebe/Downloads/USA-road-d.FLA.co" };
+//        ifstream file { "/Users/sambeebe/Downloads/USA-road-d.FLA.co" };
     ifstream file { "/Users/sambeebe/Downloads/roads2.co" };
     ifstream path { "/Users/sambeebe/Downloads/shortestpath.txt" };
     ifstream arcs { "/Users/sambeebe/Downloads/USA-road-d.NY.gr" };
+//    ifstream arcs { "/Users/sambeebe/Downloads/USA-road-d.FLA.gr-1" };
+
+    
     
     if (!file.is_open()) return -1;
     
@@ -410,8 +406,8 @@ void ofApp::setup(){
 
         if (ex!=0){
 
-        x = ofMap(stof(my_nodes[ex-1][2]),-7.4500000 * 1e7, -7.3500000 * 1e7,0., ofGetWidth());
-        y = ofMap(stof(my_nodes[ex-1][3]),4.0300000 * 1e7, 4.1300000 * 1e7,0., ofGetHeight());
+        x = ofMap(stof(my_nodes[ex-1][2]),latMin * 1e7, latMax * 1e7,0., ofGetWidth());
+        y = ofMap(stof(my_nodes[ex-1][3]),longMin * 1e7, longMax * 1e7,0., ofGetHeight());
             
         pt.set(x,y);
         line.addVertex(pt);
@@ -437,13 +433,11 @@ void ofApp::draw(){
     //draw the nodes
     for (int i=0; i<length; i++){
         ofSetColor(30,30,30,30);
-        x = ofMap(stof(my_nodes[i][2]),-7.4500000 * 1e7, -7.3500000 * 1e7,0., ofGetWidth());
-        y = ofMap(stof(my_nodes[i][3]),4.0300000 * 1e7, 4.1300000 * 1e7,0., ofGetHeight());
-//        x = ofMap(stof(my_nodes[i][2]),-8.7500000 * 1e7, -7.9000000 * 1e7,0., ofGetWidth());
-//        y = ofMap(stof(my_nodes[i][3]),2.4000000 * 1e7, 3.1000000 * 1e7,0., ofGetHeight());
-        
-        ofSphere(x,y,0.,1);
-        
+        x = ofMap(stof(my_nodes[i][2]),latMin * 1e7, latMax * 1e7,0., ofGetWidth());
+        y = ofMap(stof(my_nodes[i][3]),longMin * 1e7, longMax * 1e7,0., ofGetHeight());
+
+        ofDrawCircle(x,y,1);
+     
     }
     
 
@@ -452,9 +446,9 @@ void ofApp::draw(){
     ofSetColor(255,0,0,250);
     line.draw();
     ofSetColor(0,255,0,255);
-    x = ofMap(stof(my_nodes[sourceNode][2]),-7.4500000 * 1e7, -7.3500000 * 1e7,0., ofGetWidth());
-    y = ofMap(stof(my_nodes[sourceNode][3]),4.0300000 * 1e7, 4.1300000 * 1e7,0., ofGetHeight());
-    ofSphere(x,y,0.,5);
+    x = ofMap(stof(my_nodes[sourceNode][2]),latMin * 1e7, latMax * 1e7 ,0., ofGetWidth());
+    y = ofMap(stof(my_nodes[sourceNode][3]),longMin * 1e7, longMax * 1e7 ,0., ofGetHeight());
+//    ofSphere(x,y,0.,5);
     
     
 
