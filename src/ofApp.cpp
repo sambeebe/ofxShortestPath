@@ -10,9 +10,18 @@
 #include <limits.h>
 #include <roads.cpp>
 
+
+#define parental (i-1)/2
+#define vd dist[v]
+#define ud dist[u]
+
+
+
+
 #define sourceNode 300
 #define targetNode 9000
-#define parental (i-1)/2
+
+
 //NY
 #define length  264346
 #define arcL  733846
@@ -55,40 +64,33 @@ public:
     int weight;
     AdjListNode* next;
     AdjListNode* head;
+    AdjListNode(int dest1, int weight1,  AdjListNode* next1, AdjListNode* head1){
+        dest=dest1;
+        weight=weight1;
+        next=next1;
+        head=head1;
+    }
 };
 
-AdjListNode* newAdjListNode(int dest, int weight) {
-    AdjListNode* newNode = new AdjListNode();
-    newNode->dest = dest;
-    newNode->weight = weight;
-    newNode->next = NULL;
-    return newNode;
-}
 
 class Graph {
 public:
     int V;
     AdjListNode* array;
+    Graph(int V1, AdjListNode* array1){
+        V=V1;
+        array=array1;
+    }
+
+
 };
 
-Graph* createGraph(int V) {
-    Graph* graph = new Graph();
-    graph->V = V;
-    graph->array = ( AdjListNode*) malloc(V * sizeof( AdjListNode));
-    
-    for (int i = 0; i < V; ++i)
-        graph->array[i].head = NULL;
-    
-    return graph;
-}
 
 
 void addEdge( Graph* graph, int src, int dest, int weight) {
-    AdjListNode* newNode = newAdjListNode(dest, weight);
-    newNode->next = graph->array[src].head;
+    AdjListNode* newNode = new AdjListNode(dest,weight,graph->array[src].head,NULL);
     graph->array[src].head = newNode;
-    newNode = newAdjListNode(src, weight);
-    newNode->next = graph->array[dest].head;
+    newNode = new AdjListNode(dest,weight,graph->array[dest].head,NULL);
     graph->array[dest].head = newNode;
 }
 
@@ -109,21 +111,8 @@ public:
     MinHeapNode **array;
 };
 
-MinHeapNode* newMinHeapNode(int v, int dist) {
-    MinHeapNode* minHeapNode = new MinHeapNode(v,dist);
-//    minHeapNode->v = v;
-//    minHeapNode->dist = dist;
-    return minHeapNode;
-}
+
 //std::vector<std::unique_ptr<MinHeapNode>>(capacity);
-MinHeapNode* createMinHeap(int capacity, int v, int dist) {
-    MinHeapNode* minHeap = new MinHeapNode(v,dist);
-    minHeap->pos = (int *)malloc(capacity * sizeof(int));
-    minHeap->size = 0;
-    minHeap->capacity = capacity;
-    minHeap->array = (MinHeapNode**) malloc(capacity * sizeof(MinHeapNode*));
-    return minHeap;
-}
 
 void swapMinHeapNode(MinHeapNode** a, MinHeapNode** b) {
     MinHeapNode* t = *a;
@@ -131,27 +120,28 @@ void swapMinHeapNode(MinHeapNode** a, MinHeapNode** b) {
     *b = t;
 }
 
-void minHeapify( MinHeapNode* minHeap, int idx)
+void minHeapify( MinHeapNode* A, int i)
 {
     
-    int smallest = idx;
-    int left = 2 * idx + 1;
-    int right = 2 * idx + 2;
+    int smallest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
     
-    if (left < minHeap->size && minHeap->array[left]->dist < minHeap->array[smallest]->dist ) {smallest = left;}
+    if (left < A->size && A->array[left]->dist < A->array[smallest]->dist ) {smallest = left;}
     
-    if (right < minHeap->size && minHeap->array[right]->dist < minHeap->array[smallest]->dist ) {smallest = right;}
+    if (right < A->size && A->array[right]->dist < A->array[smallest]->dist ) {smallest = right;}
     
-    if (smallest != idx) {
-        MinHeapNode *smallestNode = minHeap->array[smallest];
-        MinHeapNode *idxNode = minHeap->array[idx];
-        minHeap->pos[smallestNode->v] = idx;
-        minHeap->pos[idxNode->v] = smallest;
-        MinHeapNode* t = minHeap->array[smallest];
-        minHeap->array[smallest] = minHeap->array[idx];
-        minHeap->array[idx] =  t;
+    if (smallest != i) {
+        //swapping
+        MinHeapNode *smallestNode = A->array[smallest];
+        MinHeapNode *iNode = A->array[i];
+        A->pos[smallestNode->v] = i;
+        A->pos[iNode->v] = smallest;
+        MinHeapNode* t = A->array[smallest];
+        A->array[smallest] = A->array[i];
+        A->array[i] =  t;
         
-        minHeapify(minHeap, smallest);
+        minHeapify(A, smallest);
     }
 }
 
@@ -171,7 +161,7 @@ void decreaseKey( MinHeapNode* A, int v, int dist) {
     int i = A->pos[v];
     A->array[i]->dist = dist;
     
-    while (i>1 && A->array[i]->dist < A->array[parental]->dist){
+    while (i>1 &&  A->array[parental]->dist  > A->array[i]->dist){
         A->pos[A->array[i]->v] = parental;
         A->pos[A->array[parental]->v] = i;
         swapMinHeapNode(&A->array[i],  &A->array[parental]);
@@ -206,23 +196,32 @@ int printSolution(int src, int target, int dist[],  int parent[]) {
     printPath(parent, n, src);
 }
 
+void relax(int u, int v, int w){
+    
+}
 
-void dijkstra( Graph* graph, int src, int target) {
+void dijkstra(Graph* graph, int src, int target) {
     
     int V = graph->V;
     int dist[V];
     int parent[V];
-    
-    MinHeapNode* minHeap = createMinHeap(V, 0, dist[0]);
+
+    MinHeapNode* minHeap = new MinHeapNode(0,dist[0]);
+    minHeap->pos = (int *)malloc(V * sizeof(int));
+    minHeap->size = 0;
+    minHeap->capacity = V;
+    minHeap->array = (MinHeapNode**) malloc(V * sizeof(MinHeapNode*));
     
     for (int i = 0; i < V; i++) {
         parent[i] = -1;
         dist[i] = INT_MAX;
-        minHeap->array[i] = newMinHeapNode(i, dist[i]);
+
+        minHeap->array[i] = new MinHeapNode(i,dist[i]);
         minHeap->pos[i] = i;
     }
     
-    minHeap->array[src] = newMinHeapNode(src, dist[src]);
+    minHeap->array[src] = new MinHeapNode(src,dist[src]);
+    
     minHeap->pos[src]   = src;
     dist[src] = 0;
     decreaseKey(minHeap, src, dist[src]);
@@ -235,8 +234,8 @@ void dijkstra( Graph* graph, int src, int target) {
         AdjListNode* pCrawl = graph->array[u].head;
         while (pCrawl != NULL) {
             int v = pCrawl->dest;
-            if (isInMinHeap(minHeap, v) && dist[u] != INT_MAX && pCrawl->weight + dist[u] < dist[v]) {
-                dist[v] = dist[u] + pCrawl->weight;
+            if (dist[u] != INT_MAX && vd > pCrawl->weight + ud ) {
+                vd = ud + pCrawl->weight;
                 parent[v] = u;
                 decreaseKey(minHeap, v, dist[v]);
             }
@@ -278,7 +277,11 @@ void ofApp::setup(){
     
     float x,y,weight;
     
-    Graph* graph = createGraph(length);
+    Graph* graph = new Graph(length,(AdjListNode*) malloc(length * sizeof( AdjListNode)));
+    
+    for (int i = 0; i < length; ++i)
+        graph->array[i].head = NULL;
+    
     for (int i = 0; i < arcL; ++i){
         weight=stoi(my_arcs[i][3]);
         x = stoi(my_arcs[i][2]);
