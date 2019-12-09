@@ -16,7 +16,7 @@
 #define ud dist[u]
 #define vpi parent[v]
 
-#define sourceNode 6529
+#define sourceNode 1
 #define targetNode 1276
 
 
@@ -57,28 +57,28 @@ ofPoint pt;
 
 
 class AdjListNode {
-    public:
-        int dest;
-        int weight;
-        AdjListNode* next;
-        AdjListNode* head;
-        AdjListNode(int dest1, int weight1,  AdjListNode* next1, AdjListNode* head1){
-            dest=dest1;
-            weight=weight1;
-            next=next1;
-            head=head1;
-        }
+public:
+    int dest;
+    int weight;
+    AdjListNode* next;
+    AdjListNode* head;
+    AdjListNode(int dest1, int weight1,  AdjListNode* next1, AdjListNode* head1){
+        dest=dest1;
+        weight=weight1;
+        next=next1;
+        head=head1;
+    }
 };
 
 
 class Graph {
-    public:
-        int V;
-        AdjListNode* array;
-        Graph(int V1, AdjListNode* array1){
-            V=V1;
-            array=array1;
-        }
+public:
+    int V;
+    AdjListNode* array;
+    Graph(int V1, AdjListNode* array1){
+        V=V1;
+        array=array1;
+    }
     void addEdge( Graph* graph, int src, int dest, int weight) {
         AdjListNode* newNode = new AdjListNode(dest,weight,graph->array[src].head,NULL);
         graph->array[src].head = newNode;
@@ -90,17 +90,17 @@ class Graph {
 
 
 class MinHeapNode {
-    public:
-        int  v;
-        int dist;
-        MinHeapNode(int v1,int dist1){
-            v=v1;
-            dist=dist1;
-        }
-        int size;
-        int capacity;
-        int *pos;
-        MinHeapNode **array;
+public:
+    int  v;
+    int dist;
+    MinHeapNode(int v1,int dist1){
+        v=v1;
+        dist=dist1;
+    }
+    int size;
+    int capacity;
+    int *pos;
+    MinHeapNode **array;
 };
 
 
@@ -194,10 +194,10 @@ void relax(int u, int v, int w){
 
 void dijkstra(Graph* graph, int src, int target) {
     
-
+    
     int dist[graph->V];
     int parent[graph->V];
-
+    
     MinHeapNode* minHeap = new MinHeapNode(0,dist[0]);
     minHeap->pos = (int *)malloc(graph->V * sizeof(int));
     minHeap->size = 0;
@@ -207,7 +207,7 @@ void dijkstra(Graph* graph, int src, int target) {
     for (int i = 0; i < graph->V; i++) {
         parent[i] = -1;
         dist[i] = INT_MAX;
-
+        
         minHeap->array[i] = new MinHeapNode(i,dist[i]);
         minHeap->pos[i] = i;
     }
@@ -310,7 +310,7 @@ void ofApp::update(){
 void ofApp::draw(){
     float x,y;
     ofEnableAlphaBlending();
-
+    
     //draw the nodes
     for (int i=0; i<length; i++){
         ofSetColor(30,30,30,30);
