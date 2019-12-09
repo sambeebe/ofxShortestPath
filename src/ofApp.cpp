@@ -14,12 +14,10 @@
 #define parental (i-1)/2
 #define vd dist[v]
 #define ud dist[u]
+#define vpi parent[v]
 
-
-
-
-#define sourceNode 300
-#define targetNode 9000
+#define sourceNode 200000
+#define targetNode 90000
 
 
 //NY
@@ -59,56 +57,50 @@ int ex, ey;
 
 
 class AdjListNode {
-public:
-    int dest;
-    int weight;
-    AdjListNode* next;
-    AdjListNode* head;
-    AdjListNode(int dest1, int weight1,  AdjListNode* next1, AdjListNode* head1){
-        dest=dest1;
-        weight=weight1;
-        next=next1;
-        head=head1;
-    }
+    public:
+        int dest;
+        int weight;
+        AdjListNode* next;
+        AdjListNode* head;
+        AdjListNode(int dest1, int weight1,  AdjListNode* next1, AdjListNode* head1){
+            dest=dest1;
+            weight=weight1;
+            next=next1;
+            head=head1;
+        }
 };
 
 
 class Graph {
-public:
-    int V;
-    AdjListNode* array;
-    Graph(int V1, AdjListNode* array1){
-        V=V1;
-        array=array1;
+    public:
+        int V;
+        AdjListNode* array;
+        Graph(int V1, AdjListNode* array1){
+            V=V1;
+            array=array1;
+        }
+    void addEdge( Graph* graph, int src, int dest, int weight) {
+        AdjListNode* newNode = new AdjListNode(dest,weight,graph->array[src].head,NULL);
+        graph->array[src].head = newNode;
+        newNode = new AdjListNode(dest,weight,graph->array[dest].head,NULL);
+        graph->array[dest].head = newNode;
     }
-
-
 };
 
 
 
-void addEdge( Graph* graph, int src, int dest, int weight) {
-    AdjListNode* newNode = new AdjListNode(dest,weight,graph->array[src].head,NULL);
-    graph->array[src].head = newNode;
-    newNode = new AdjListNode(dest,weight,graph->array[dest].head,NULL);
-    graph->array[dest].head = newNode;
-}
-
-
 class MinHeapNode {
-private:
-
-public:
-    int  v;
-    int dist;
-    MinHeapNode(int v1,int dist1){
-        v=v1;
-        dist=dist1;
-    }
-    int size;
-    int capacity;
-    int *pos;
-    MinHeapNode **array;
+    public:
+        int  v;
+        int dist;
+        MinHeapNode(int v1,int dist1){
+            v=v1;
+            dist=dist1;
+        }
+        int size;
+        int capacity;
+        int *pos;
+        MinHeapNode **array;
 };
 
 
@@ -134,9 +126,9 @@ void minHeapify( MinHeapNode* A, int i)
     if (smallest != i) {
         //swapping
         MinHeapNode *smallestNode = A->array[smallest];
-        MinHeapNode *iNode = A->array[i];
+        MinHeapNode *swappy = A->array[i];
         A->pos[smallestNode->v] = i;
-        A->pos[iNode->v] = smallest;
+        A->pos[swappy->v] = smallest;
         MinHeapNode* t = A->array[smallest];
         A->array[smallest] = A->array[i];
         A->array[i] =  t;
@@ -202,17 +194,17 @@ void relax(int u, int v, int w){
 
 void dijkstra(Graph* graph, int src, int target) {
     
-    int V = graph->V;
-    int dist[V];
-    int parent[V];
+
+    int dist[graph->V];
+    int parent[graph->V];
 
     MinHeapNode* minHeap = new MinHeapNode(0,dist[0]);
-    minHeap->pos = (int *)malloc(V * sizeof(int));
+    minHeap->pos = (int *)malloc(graph->V * sizeof(int));
     minHeap->size = 0;
-    minHeap->capacity = V;
-    minHeap->array = (MinHeapNode**) malloc(V * sizeof(MinHeapNode*));
+    minHeap->capacity = graph->V;
+    minHeap->array = (MinHeapNode**) malloc(graph->V * sizeof(MinHeapNode*));
     
-    for (int i = 0; i < V; i++) {
+    for (int i = 0; i < graph->V; i++) {
         parent[i] = -1;
         dist[i] = INT_MAX;
 
@@ -226,7 +218,7 @@ void dijkstra(Graph* graph, int src, int target) {
     dist[src] = 0;
     decreaseKey(minHeap, src, dist[src]);
     
-    minHeap->size = V;
+    minHeap->size = graph->V;
     
     while (minHeap->size != 0) {
         MinHeapNode* minHeapNode = heapextractmin(minHeap);
@@ -234,9 +226,9 @@ void dijkstra(Graph* graph, int src, int target) {
         AdjListNode* pCrawl = graph->array[u].head;
         while (pCrawl != NULL) {
             int v = pCrawl->dest;
-            if (dist[u] != INT_MAX && vd > pCrawl->weight + ud ) {
+            if (ud != INT_MAX && vd > pCrawl->weight + ud ) {
                 vd = ud + pCrawl->weight;
-                parent[v] = u;
+                vpi = u;
                 decreaseKey(minHeap, v, dist[v]);
             }
             pCrawl = pCrawl->next;
@@ -286,7 +278,7 @@ void ofApp::setup(){
         weight=stoi(my_arcs[i][3]);
         x = stoi(my_arcs[i][2]);
         y = stoi(my_arcs[i][1]);
-        addEdge(graph, x,y,weight);
+        graph->addEdge(graph, x,y,weight);
         
     }
     
