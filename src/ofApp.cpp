@@ -16,8 +16,8 @@
 #define ud dist[u]
 #define vpi parent[v]
 
-#define sourceNode 200000
-#define targetNode 90000
+#define sourceNode 6529
+#define targetNode 1276
 
 
 //NY
@@ -48,11 +48,11 @@ int my_paths[264346];
 
 using namespace std;
 
-
+int ex, ey;
 int pathWeight;
 ofPolyline line;
 ofPoint pt;
-int ex, ey;
+
 
 
 
@@ -293,6 +293,9 @@ void ofApp::setup(){
             
             pt.set(x,y);
             line.addVertex(pt);
+        }
+        if (ex!=0){
+            cout << my_paths[i] << "\n";
         }
     }
     
