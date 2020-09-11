@@ -16,8 +16,7 @@
 #define ud dist[u]
 #define vpi parent[v]
 
-#define sourceNode 1
-#define targetNode 1276
+
 
 
 //NY
@@ -30,7 +29,11 @@
 string my_nodes [264346][4]{};
 string my_arcs [733846][4]{};
 int my_paths[264346];
-
+vector<vector<float>> points;
+int flag=0;
+int linestep = 0;
+int sourceNode;
+int targetNode;
 //FL
 //#define length  1070376
 //#define arcL 2712798
@@ -50,6 +53,7 @@ using namespace std;
 
 int ex, ey;
 int pathWeight;
+int stepsize = 30;
 ofPolyline line;
 ofPoint pt;
 
@@ -180,10 +184,12 @@ void printPath(int parent[], int j, int src) {
     if (parent[j] == - 1) {return;}
     printPath(parent, parent[j], src);
     createArray(j,0,src);
+//        cout<<j<< " ";
 }
 
 int printSolution(int src, int target, int dist[],  int parent[]) {
     int n = target;
+
     pathWeight = dist[n];
     printPath(parent, n, src);
 }
@@ -235,20 +241,56 @@ void dijkstra(Graph* graph, int src, int target) {
         }
     }
     
-    printSolution(sourceNode, target, dist, parent);
+    printSolution(src, target, dist, parent);
 }
 
 
-
+void spg(int source,int target){
+        float x,y,weight;
+        
+        Graph* graph = new Graph(length,(AdjListNode*) malloc(length * sizeof( AdjListNode)));
+        
+        for (int i = 0; i < length; ++i)
+            graph->array[i].head = NULL;
+        
+        for (int i = 0; i < arcL; ++i){
+            weight=stoi(my_arcs[i][3]);
+            x = stoi(my_arcs[i][2]);
+            y = stoi(my_arcs[i][1]);
+            graph->addEdge(graph, x,y,weight);
+            
+        }
+        
+        dijkstra(graph, source, target);
+                points.clear();
+        for (int i = 0; i < length; ++i){
+            ex = (my_paths[i]);
+    //        cout << ex << " ";
+            if (ex!=0){
+                x = ofMap(stof(my_nodes[ex-1][2]),latMin * 1e7, latMax * 1e7,0., ofGetWidth());
+                y = ofMap(stof(my_nodes[ex-1][3]),longMin * 1e7, longMax * 1e7,0., ofGetHeight());
+    //            drawnPoints.push_back(ofPoint(x,y));
+                points.push_back({x,y});
+    //            pt.set(x,y);
+    //
+    //            line.addVertex(pt);
+            }
+            else{
+                break;
+            }
+        }
+}
 //--------------------------------------------------------------
 void ofApp::setup(){
     //ifstream file { "/Users/sambeebe/Downloads/USA-road-d.FLA.co" };
-    ifstream file { "/Users/sambeebe/Downloads/roads2.co" };
+//    ifstream file { "/Users/sambeebe/Downloads/roads2.co" };
     ifstream path { "/Users/sambeebe/Downloads/shortestpath.txt" };
-    ifstream arcs { "/Users/sambeebe/Downloads/USA-road-d.NY.gr" };
+//    ifstream arcs { "/Users/sambeebe/Downloads/USA-road-d.NY.gr" };
+    ifstream file { "/Users/sambeebe/openFrameworks/apps/myApps/ofxShortestPath/USA-road-d.NY.co" };
+    ifstream arcs {"/Users/sambeebe/openFrameworks/apps/myApps/ofxShortestPath/USA-road-d.NY.gr"};
     //ifstream arcs { "/Users/sambeebe/Downloads/USA-road-d.FLA.gr-1" };
-    
-    
+    ofSetFrameRate(60);
+        ofEnableAntiAliasing();
     
     if (!file.is_open()) {return -1;}
     
@@ -267,37 +309,7 @@ void ofApp::setup(){
     
     
     
-    float x,y,weight;
     
-    Graph* graph = new Graph(length,(AdjListNode*) malloc(length * sizeof( AdjListNode)));
-    
-    for (int i = 0; i < length; ++i)
-        graph->array[i].head = NULL;
-    
-    for (int i = 0; i < arcL; ++i){
-        weight=stoi(my_arcs[i][3]);
-        x = stoi(my_arcs[i][2]);
-        y = stoi(my_arcs[i][1]);
-        graph->addEdge(graph, x,y,weight);
-        
-    }
-    
-    dijkstra(graph, sourceNode, targetNode);
-    
-    for (int i = 0; i < length; ++i){
-        ex = (my_paths[i]);
-        
-        if (ex!=0){
-            x = ofMap(stof(my_nodes[ex-1][2]),latMin * 1e7, latMax * 1e7,0., ofGetWidth());
-            y = ofMap(stof(my_nodes[ex-1][3]),longMin * 1e7, longMax * 1e7,0., ofGetHeight());
-            
-            pt.set(x,y);
-            line.addVertex(pt);
-        }
-        if (ex!=0){
-            cout << my_paths[i] << "\n";
-        }
-    }
     
 }
 
@@ -309,38 +321,92 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     float x,y;
+    ofBackground(255,255,255);
     ofEnableAlphaBlending();
-    
+
     //draw the nodes
     for (int i=0; i<length; i++){
-        ofSetColor(30,30,30,30);
+        ofSetColor(150,150,150,200);
         x = ofMap(stof(my_nodes[i][2]),latMin * 1e7, latMax * 1e7,0., ofGetWidth());
         y = ofMap(stof(my_nodes[i][3]),longMin * 1e7, longMax * 1e7,0., ofGetHeight());
         ofDrawCircle(x,y,1);
     }
     
-    
-    
-    //draw paths
-    ofSetColor(255,0,0,250);
-    line.draw();
-    ofSetColor(0,255,0,255);
+
+
+//
+//    //draw paths
+       
+//      line.draw();
+//    line.clear();
+    for (int i = 0; i < linestep; i++)
+    {
+        
+        ofSetColor(255,255,255,0);
+        if (points[i+1][1] != points[0][1] && points[i+1][0] != points[0][0] && points[i][1] != points[0][1] && points[i][0] != points[0][0] && points[i+2][1] != points[0][1] && points[i+2][0] != points[0][0]  ){
+             
+             ofSetColor(255,0,0,255);
+        }
+
+        ofDrawLine(points[i][0], points[i][1], points[i+1][0], points[i+1][1]);
+//        pt.set(points[i][0],points[i][1]);
+//        line.addVertex(pt);
+    }
+
+  
+
+//    for (auto line : lines) {
+//    cout << drawnPoints[0][0];
+//    }
     x = ofMap(stof(my_nodes[sourceNode][2]),latMin * 1e7, latMax * 1e7 ,0., ofGetWidth());
     y = ofMap(stof(my_nodes[sourceNode][3]),longMin * 1e7, longMax * 1e7 ,0., ofGetHeight());
     
     //draw source node
-    ofSphere(x,y,0.,5);
+//    ofSphere(x,y,0.,5);
     
-    
-    
-    ofSetColor(ofColor::white);
-    ofDrawBitmapString("path weight: " + ofToString(pathWeight), 10, 10);
+    if(flag==1){
+        if ( linestep < points.size()-50){
+             linestep+=50;
+         }
+         else{
+             linestep=0;
+             line.clear();
+         }
+    }
+//    ofSetColor(ofColor::white);
+//    ofDrawBitmapString("path weight: " + ofToString(pathWeight), 10, 10);
     
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    
+    if(key=='h'){
+        flag=1;
+    }
+    if(key=='s'){
+        
+//        line.clear();
+
+        sourceNode = 10238;
+        targetNode  = ofRandom(length-5);
+        spg(sourceNode, targetNode);
+        linestep = 0;
+        line.clear();
+        line.end();
+//        points.clear();
+
+
+    }
+    if(key=='g'){
+        linestep = 0;
+//        line.clear();
+
+        sourceNode = 10238;
+        targetNode  = 880;
+        spg(sourceNode, targetNode);
+        linestep = 0;
+        
+    }
 }
 
 //--------------------------------------------------------------
